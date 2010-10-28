@@ -77,25 +77,89 @@ class TeamsTest(TestCase):
         self.assertTrue(a.has_member(self.user))
         self.assertTrue(a.has_manager(self.user))
         a.members.remove(self.user)
+        a.save()
         self.assertFalse(a.has_member(self.user))
         self.assertFalse(a.has_manager(self.user))
 
+    def test_member_is_defacto_member_of_team(self):
+        aa = self.team('a.a')
+        aa.members.add(self.user)
+        aa.save()
+        self.assertTrue(aa.has_defacto_member(self.user))
+        aa.members.remove(self.user)
+        aa.save()
+        self.assertFalse(aa.has_defacto_member(self.user))
+
+    def _test_defacto(self, type, member_of, not_member_of):
+        method_name = 'has_defacto_%s' % type
+        for fullslug in member_of:
+            fn = getattr(self.team(fullslug), method_name)
+            self.assertTrue(
+                fn(self.user),
+                'Should be %s of %r but is not' % (type, fullslug),
+                )
+        for fullslug in not_member_of:
+            fn = getattr(self.team(fullslug), method_name)
+            self.assertFalse(
+                fn(self.user),
+                'Should not be %s of %r but is' % (type, fullslug),
+                )
+
     def test_member_is_defacto_member_of_direct_ancestors(self):
-        """
-        """
+        t = self.team('a.b.a')
+        t.members.add(self.user)
+        t.save()
+        self._test_defacto(
+            'member',
+            member_of=['a.b.a', 'a.b', 'a'],
+            not_member_of=['a.a', 'a.a.a', 'b', 'b.a'],
+        )
 
     def test_member_is_defacto_member_of_all_descendants(self):
-        """
-        """
+        t = self.team('a')
+        t.members.add(self.user)
+        t.save()
+        self._test_defacto(
+            'member',
+            member_of=['a', 'a.a', 'a.b', 'a.a.a', 'a.b.a'],
+            not_member_of=['b', 'b.a'],
+        )
 
     def test_member_is_not_defacto_member_of_descendants_of_direct_ancestors(self):
-        """
-        """
+        t = self.team('a.b')
+        t.members.add(self.user)
+        t.save()
+        self._test_defacto(
+            'member',
+            member_of=['a', 'a.b', 'a.b.a'],
+            not_member_of=['a.a', 'a.a.a', 'b', 'b.a'],
+        )
+
+    def test_manager_is_defacto_manager_of_team(self):
+        aa = self.team('a.a')
+        aa.managers.add(self.user)
+        aa.save()
+        self.assertTrue(aa.has_defacto_manager(self.user))
+        aa.managers.remove(self.user)
+        aa.save()
+        self.assertFalse(aa.has_defacto_manager(self.user))
 
     def test_manager_is_defacto_manager_of_all_descendants(self):
-        """
-        """
+        t = self.team('a.b')
+        t.managers.add(self.user)
+        t.save()
+        self._test_defacto(
+            'manager',
+            member_of=['a.b', 'a.b.a'],
+            not_member_of=['a', 'a.a', 'a.a.a', 'b', 'b.a'],
+        )
 
     def test_manager_is_not_defacto_manager_of_ancestors(self):
-        """
-        """
+        t = self.team('a.b.a')
+        t.managers.add(self.user)
+        t.save()
+        self._test_defacto(
+            'manager',
+            member_of=['a.b.a'],
+            not_member_of=['a', 'a.a', 'a.a.a', 'a.b', 'b', 'b.a'],
+        )

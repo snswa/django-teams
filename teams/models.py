@@ -19,10 +19,38 @@ class Team(NS_Node):
         return self.fullslug
 
     def has_manager(self, user):
-        return Team.objects.filter(managers__in=[user]).count() > 0
+        return user.teams_manager_of.filter(pk=self.pk).count() > 0
+
+    def has_defacto_manager(self, user):
+        if self.has_manager(user):
+            return True
+        # Don't have direct managership.  Check user's managerships to
+        # determine de facto managership.
+        for team in user.teams_manager_of.all():
+            # Look to see if self is below this team that the user manages.
+            if self.is_descendant_of(team):
+                return True
+        return False
 
     def has_member(self, user):
-        return Team.objects.filter(members__in=[user]).count() > 0
+        return user.teams_member_of.filter(pk=self.pk).count() > 0
+
+    def has_defacto_member(self, user):
+        if self.has_member(user):
+            return True
+        #
+        # Don't have direct membership.  Check user's memberships to determine
+        # de facto membership.
+        for team in user.teams_member_of.all():
+            # Look to see if self is below this team that the user is a
+            # member of.
+            if self.is_descendant_of(team):
+                return True
+            # Look to see if the team the user is a member of is below
+            # self.
+            if team.is_descendant_of(self):
+                return True
+        return False
 
     def save(self, *args, **kwargs):
         # Build fullslug if not specified.
