@@ -7,7 +7,7 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-
+        
         # Adding model 'Team'
         db.create_table('teams_team', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -17,6 +17,7 @@ class Migration(SchemaMigration):
             ('depth', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=40)),
             ('slug', self.gf('django.db.models.fields.CharField')(max_length=20)),
+            ('fullslug', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255)),
         ))
         db.send_create_signal('teams', ['Team'])
 
@@ -38,7 +39,7 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
-
+        
         # Deleting model 'Team'
         db.delete_table('teams_team')
 
@@ -89,9 +90,10 @@ class Migration(SchemaMigration):
         'teams.team': {
             'Meta': {'object_name': 'Team'},
             'depth': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
-            'managers': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'teams_manager_of'", 'symmetrical': 'False', 'to': "orm['auth.User']"}),
+            'fullslug': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'lft': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
+            'managers': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'teams_manager_of'", 'symmetrical': 'False', 'to': "orm['auth.User']"}),
             'members': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'teams_member_of'", 'symmetrical': 'False', 'to': "orm['auth.User']"}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '40'}),
             'rgt': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),

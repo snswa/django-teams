@@ -32,8 +32,13 @@ class TeamsTest(TestCase):
         self.assertEqual('b', self.get(self.b).fullslug)
 
     def test_retrieve_team_by_fullslug(self):
-        """
-        """
+        self.assertEqual(self.a, Team.objects.get(fullslug='a'))
+        self.assertEqual(self.b, Team.objects.get(fullslug='b'))
+        self.assertEqual(self.aa, Team.objects.get(fullslug='a.a'))
+        self.assertEqual(self.ab, Team.objects.get(fullslug='a.b'))
+        self.assertEqual(self.aaa, Team.objects.get(fullslug='a.a.a'))
+        self.assertEqual(self.aba, Team.objects.get(fullslug='a.b.a'))
+        self.assertEqual(self.b, Team.objects.get(fullslug='b'))
 
     def test_member_is_defacto_member_of_direct_ancestors(self):
         """
