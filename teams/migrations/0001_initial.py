@@ -8,6 +8,27 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         
+        # Adding model 'RoleMembership'
+        db.create_table('teams_rolemembership', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('role', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['teams.Role'])),
+            ('team', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['teams.Team'])),
+        ))
+        db.send_create_signal('teams', ['RoleMembership'])
+
+        # Adding unique constraint on 'RoleMembership', fields ['user', 'role', 'team']
+        db.create_unique('teams_rolemembership', ['user_id', 'role_id', 'team_id'])
+
+        # Adding model 'Role'
+        db.create_table('teams_role', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=20)),
+            ('include_superteams', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('include_subteams', self.gf('django.db.models.fields.BooleanField')(default=False)),
+        ))
+        db.send_create_signal('teams', ['Role'])
+
         # Adding model 'Team'
         db.create_table('teams_team', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -17,37 +38,24 @@ class Migration(SchemaMigration):
             ('depth', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=40)),
             ('slug', self.gf('django.db.models.fields.CharField')(max_length=20)),
-            ('fullslug', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255)),
+            ('fullslug', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255, blank=True)),
         ))
         db.send_create_signal('teams', ['Team'])
-
-        # Adding M2M table for field members on 'Team'
-        db.create_table('teams_team_members', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('team', models.ForeignKey(orm['teams.team'], null=False)),
-            ('user', models.ForeignKey(orm['auth.user'], null=False))
-        ))
-        db.create_unique('teams_team_members', ['team_id', 'user_id'])
-
-        # Adding M2M table for field managers on 'Team'
-        db.create_table('teams_team_managers', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('team', models.ForeignKey(orm['teams.team'], null=False)),
-            ('user', models.ForeignKey(orm['auth.user'], null=False))
-        ))
-        db.create_unique('teams_team_managers', ['team_id', 'user_id'])
 
 
     def backwards(self, orm):
         
+        # Removing unique constraint on 'RoleMembership', fields ['user', 'role', 'team']
+        db.delete_unique('teams_rolemembership', ['user_id', 'role_id', 'team_id'])
+
+        # Deleting model 'RoleMembership'
+        db.delete_table('teams_rolemembership')
+
+        # Deleting model 'Role'
+        db.delete_table('teams_role')
+
         # Deleting model 'Team'
         db.delete_table('teams_team')
-
-        # Removing M2M table for field members on 'Team'
-        db.delete_table('teams_team_members')
-
-        # Removing M2M table for field managers on 'Team'
-        db.delete_table('teams_team_managers')
 
 
     models = {
@@ -87,14 +95,26 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
+        'teams.role': {
+            'Meta': {'object_name': 'Role'},
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'include_subteams': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'include_superteams': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '20'})
+        },
+        'teams.rolemembership': {
+            'Meta': {'unique_together': "(('user', 'role', 'team'),)", 'object_name': 'RoleMembership'},
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'role': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['teams.Role']"}),
+            'team': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['teams.Team']"}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
+        },
         'teams.team': {
             'Meta': {'object_name': 'Team'},
             'depth': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
-            'fullslug': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
+            'fullslug': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'lft': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
-            'managers': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'teams_manager_of'", 'symmetrical': 'False', 'to': "orm['auth.User']"}),
-            'members': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'teams_member_of'", 'symmetrical': 'False', 'to': "orm['auth.User']"}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '40'}),
             'rgt': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'slug': ('django.db.models.fields.CharField', [], {'max_length': '20'}),

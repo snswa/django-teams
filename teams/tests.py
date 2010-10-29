@@ -3,10 +3,16 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from teams.models import Team
+from teams.api import user_has_team_role
+from teams.models import Role, RoleMembership, Team
 
 
-class TeamsTest(TestCase):
+class BaseTest(TestCase):
+
+    def setUp(self):
+        self.createTestRoles()
+        self.createTestTeams()
+        self.createTestUser()
 
     def get(self, node):
         return Team.objects.get(pk=node.id)
@@ -14,9 +20,22 @@ class TeamsTest(TestCase):
     def team(self, fullslug):
         return Team.objects.get(fullslug=fullslug)
 
-    def setUp(self):
-        self.createTestTeams()
-        self.createTestUser()
+    def createTestRoles(self):
+        self.manager = Role.objects.create(
+            name='manager',
+            include_superteams=False,
+            include_subteams=True,
+        )
+        self.member = Role.objects.create(
+            name='member',
+            include_superteams=True,
+            include_subteams=True,
+        )
+        self.special = Role.objects.create(
+            name='special',
+            include_superteams=False,
+            include_subteams=False,
+        )
 
     def createTestTeams(self):
         self.a = Team.add_root(name='A', slug='a')
@@ -29,6 +48,9 @@ class TeamsTest(TestCase):
 
     def createTestUser(self):
         self.user = User.objects.create(username='user1')
+
+
+class TeamsTest(BaseTest):
 
     def test_fullslug_shows_dotted_hierarchy_of_slugs(self):
         self.assertEqual('a', self.get(self.a).fullslug)
@@ -48,118 +70,56 @@ class TeamsTest(TestCase):
         self.assertEqual(self.aba, Team.objects.get(fullslug='a.b.a'))
         self.assertEqual(self.b, Team.objects.get(fullslug='b'))
 
-    def test_user_is_member_of_team(self):
-        a = self.team('a')
-        a.members.add(self.user)
-        a.save()
-        self.assertTrue(a.has_member(self.user))
-        self.assertFalse(a.has_manager(self.user))
 
-    def test_user_is_manager_of_team(self):
-        a = self.team('a')
-        a.members.add(self.user)
-        a.managers.add(self.user)
-        a.save()
-        self.assertTrue(a.has_member(self.user))
-        self.assertTrue(a.has_manager(self.user))
+class RolesTest(BaseTest):
 
-    def test_user_is_manager_of_team_and_automatically_a_member(self):
-        a = self.team('a')
-        a.managers.add(self.user)
-        a.save()
-        self.assertTrue(a.has_member(self.user))
-        self.assertTrue(a.has_manager(self.user))
-
-    def test_user_removed_from_team_no_longer_manager(self):
-        a = self.team('a')
-        a.managers.add(self.user)
-        a.save()
-        self.assertTrue(a.has_member(self.user))
-        self.assertTrue(a.has_manager(self.user))
-        a.members.remove(self.user)
-        a.save()
-        self.assertFalse(a.has_member(self.user))
-        self.assertFalse(a.has_manager(self.user))
-
-    def test_member_is_defacto_member_of_team(self):
-        aa = self.team('a.a')
-        aa.members.add(self.user)
-        aa.save()
-        self.assertTrue(aa.has_defacto_member(self.user))
-        aa.members.remove(self.user)
-        aa.save()
-        self.assertFalse(aa.has_defacto_member(self.user))
-
-    def _test_defacto(self, type, member_of, not_member_of):
-        method_name = 'has_defacto_%s' % type
-        for fullslug in member_of:
-            fn = getattr(self.team(fullslug), method_name)
+    def _test_roles(self, role, yes_teams, no_teams):
+        for team in yes_teams:
             self.assertTrue(
-                fn(self.user),
-                'Should be %s of %r but is not' % (type, fullslug),
+                user_has_team_role(self.user, team, role),
+                'User should have role %r on team %r' % (role, team),
                 )
-        for fullslug in not_member_of:
-            fn = getattr(self.team(fullslug), method_name)
+        for team in no_teams:
             self.assertFalse(
-                fn(self.user),
-                'Should not be %s of %r but is' % (type, fullslug),
+                user_has_team_role(self.user, team, role),
+                'User should NOT have role %r on team %r' % (role, team),
                 )
 
-    def test_member_is_defacto_member_of_direct_ancestors(self):
-        t = self.team('a.b.a')
-        t.members.add(self.user)
-        t.save()
-        self._test_defacto(
-            'member',
-            member_of=['a.b.a', 'a.b', 'a'],
-            not_member_of=['a.a', 'a.a.a', 'b', 'b.a'],
+    def test_special_role(self):
+        # Only a single team, no ancestors or descendants.
+        RoleMembership.objects.create(
+            user=self.user,
+            team=self.team('a.a'),
+            role=self.special,
+        )
+        self._test_roles(
+            role='special',
+            yes_teams=['a.a'],
+            no_teams=['a', 'b', 'a.b', 'a.a.a', 'a.b.a', 'b.a'],
         )
 
-    def test_member_is_defacto_member_of_all_descendants(self):
-        t = self.team('a')
-        t.members.add(self.user)
-        t.save()
-        self._test_defacto(
-            'member',
-            member_of=['a', 'a.a', 'a.b', 'a.a.a', 'a.b.a'],
-            not_member_of=['b', 'b.a'],
+    def test_member_role(self):
+        # Team, ancestors, and descendants.
+        RoleMembership.objects.create(
+            user=self.user,
+            team=self.team('a.a'),
+            role=self.member,
+        )
+        self._test_roles(
+            role='member',
+            yes_teams=['a', 'a.a', 'a.a.a'],
+            no_teams=['b', 'a.b', 'a.b.a', 'b.a'],
         )
 
-    def test_member_is_not_defacto_member_of_descendants_of_direct_ancestors(self):
-        t = self.team('a.b')
-        t.members.add(self.user)
-        t.save()
-        self._test_defacto(
-            'member',
-            member_of=['a', 'a.b', 'a.b.a'],
-            not_member_of=['a.a', 'a.a.a', 'b', 'b.a'],
+    def test_manager_role(self):
+        # Team and descendants.
+        RoleMembership.objects.create(
+            user=self.user,
+            team=self.team('a.a'),
+            role=self.manager,
         )
-
-    def test_manager_is_defacto_manager_of_team(self):
-        aa = self.team('a.a')
-        aa.managers.add(self.user)
-        aa.save()
-        self.assertTrue(aa.has_defacto_manager(self.user))
-        aa.managers.remove(self.user)
-        aa.save()
-        self.assertFalse(aa.has_defacto_manager(self.user))
-
-    def test_manager_is_defacto_manager_of_all_descendants(self):
-        t = self.team('a.b')
-        t.managers.add(self.user)
-        t.save()
-        self._test_defacto(
-            'manager',
-            member_of=['a.b', 'a.b.a'],
-            not_member_of=['a', 'a.a', 'a.a.a', 'b', 'b.a'],
-        )
-
-    def test_manager_is_not_defacto_manager_of_ancestors(self):
-        t = self.team('a.b.a')
-        t.managers.add(self.user)
-        t.save()
-        self._test_defacto(
-            'manager',
-            member_of=['a.b.a'],
-            not_member_of=['a', 'a.a', 'a.a.a', 'a.b', 'b', 'b.a'],
+        self._test_roles(
+            role='manager',
+            yes_teams=['a.a', 'a.a.a'],
+            no_teams=['a', 'b', 'a.b', 'a.b.a', 'b.a'],
         )
