@@ -1,7 +1,12 @@
+from django.contrib.auth.models import AnonymousUser
+
 from teams.models import Role, RoleMembership, Team
 
 
 def user_has_team_role(user, team, role):
+    if isinstance(user, AnonymousUser):
+        return False
+    #
     if isinstance(team, basestring):
         team = Team.objects.get(fullslug=team)
     if isinstance(role, basestring):
