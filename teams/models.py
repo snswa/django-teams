@@ -27,6 +27,10 @@ class Member(models.Model):
     is_coordinator = models.BooleanField(default=False)
     joined = models.DateTimeField(auto_now_add=True)
 
+    def __unicode__(self):
+        rel = 'coordinator' if self.is_coordinator else 'member'
+        return u'{0}, {1} of {2}'.format(self.user, rel, self.team)
+
 
 def auto_join_user_with_no_memberships(sender, instance=None, **kwargs):
     if instance is not None:
