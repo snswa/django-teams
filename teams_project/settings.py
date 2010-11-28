@@ -92,6 +92,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.admin',
     'teams',
+    'south',
 )
 
 CACHE_BACKEND = 'locmem://'
