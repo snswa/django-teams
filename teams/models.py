@@ -8,5 +8,8 @@ class Team(models.Model):
     is_private = models.BooleanField(default=False)
     auto_join = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ['name']
+
     def __unicode__(self):
         return self.name
