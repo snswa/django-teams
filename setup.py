@@ -16,7 +16,7 @@ setup(
     keywords='groups,teams,django',
     author='Matthew Scott',
     author_email='matt@11craft.com',
-    url='http://github.com/11craft/django-teams/',
+    url='http://github.com/snswa/django-teams/',
     license='Apache 2.0',
     packages=find_packages(),
     zip_safe=False,

@@ -26,7 +26,7 @@ class TestTeams(TestCase):
         team_auto = Team.objects.create(slug='auto', name='Auto Join', auto_join=True)
         team_noauto = Team.objects.create(slug='noauto', name='No Auto Join')
         user1 = User.objects.create(username='user1')
-        user1.team_members.all().delete()
+        user1.member_set.all().delete()
         Member.objects.create(team=team_noauto, user=user1)
         user1.save()
         assert not team_auto.user_is_member(user1)

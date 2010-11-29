@@ -2,13 +2,16 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
 
+from groups.base import GroupBase
 
-class Team(models.Model):
+
+class Team(GroupBase):
 
     slug = models.CharField(max_length=64, unique=True)
     name = models.CharField(max_length=100, unique=True)
     is_private = models.BooleanField(default=False)
     auto_join = models.BooleanField(default=False)
+    members = models.ManyToManyField(User, through='Member')
 
     class Meta:
         ordering = ['name']
@@ -16,14 +19,11 @@ class Team(models.Model):
     def __unicode__(self):
         return self.name
 
-    def user_is_member(self, user):
-        return (Member.objects.filter(team=self, user=user).count() == 1)
-
 
 class Member(models.Model):
 
-    user = models.ForeignKey(User, related_name='team_members')
-    team = models.ForeignKey(Team, related_name='members')
+    user = models.ForeignKey(User)
+    team = models.ForeignKey(Team)
     is_coordinator = models.BooleanField(default=False)
     joined = models.DateTimeField(auto_now_add=True)
 
