@@ -15,12 +15,9 @@ from teams.models import Member, Team
 @login_required
 def index(request):
     template_name = 'teams/index.html'
-    # @@@ How to do this using queryset only?
-    teams = set(Team.objects.filter(is_private=False))
-    teams.update(request.user.team_set.all())
-    teams = sorted(teams, key=attrgetter('name'))
     template_context = {
-        'teams': teams,
+        'public_teams': Team.objects.filter(is_private=False),
+        'private_teams': Team.objects.filter(is_private=True),
     }
     return render_to_response(
         template_name, template_context, RequestContext(request))
