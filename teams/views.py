@@ -27,6 +27,7 @@ def index(request):
 def team(request, slug):
     template_name = 'teams/team.html'
     team = get_object_or_404(Team, slug=slug)
+    request.group = team    # So template context processors can access it.
     template_context = {
         'group': team,
         'is_team_member': team.user_is_member(request.user),
