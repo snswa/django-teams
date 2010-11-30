@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.signals import post_save
 
@@ -18,6 +19,9 @@ class Team(GroupBase):
 
     def __unicode__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse('teams_team', kwargs={'slug': self.slug})
 
 
 class Member(models.Model):
