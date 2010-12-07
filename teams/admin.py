@@ -1,12 +1,27 @@
 from django.contrib import admin
 
-from teams.models import Team, Member
+from inline_ordering.admin import OrderableStackedInline, OrderableTabularInline
+
+from teams.models import Grouping, Member, Team, TeamGrouping
 
 
 class MemberInline(admin.TabularInline):
 
     model = Member
     extra = 1
+
+
+class TeamGroupingInline(OrderableTabularInline):
+
+    model = TeamGrouping
+    extra = 1
+
+
+class GroupingAdmin(admin.ModelAdmin):
+
+    inlines = [
+        TeamGroupingInline,
+    ]
 
 
 class TeamAdmin(admin.ModelAdmin):
@@ -19,4 +34,5 @@ class TeamAdmin(admin.ModelAdmin):
     ]
 
 
+admin.site.register(Grouping, GroupingAdmin)
 admin.site.register(Team, TeamAdmin)

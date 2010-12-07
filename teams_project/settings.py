@@ -78,6 +78,21 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    'django.core.context_processors.request',
+    'staticfiles.context_processors.static_url',
+)
+
+STATICFILES_RESOLVERS = (
+    'staticfiles.resolvers.AppDirectoriesResolver',
+)
+
+STATIC_URL = MEDIA_URL
+
 ROOT_URLCONF = 'teams_project.urls'
 
 TEMPLATE_DIRS = (
@@ -91,8 +106,9 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.admin',
-    'teams',
+    'inline_ordering',
     'south',
+    'teams',
 )
 
 CACHE_BACKEND = 'locmem://'

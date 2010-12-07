@@ -3,6 +3,8 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.signals import post_save
 
+from inline_ordering.models import Orderable
+
 from groups.base import GroupBase
 
 
@@ -22,6 +24,24 @@ class Team(GroupBase):
 
     def get_absolute_url(self):
         return reverse('teams_team', kwargs={'slug': self.slug})
+
+
+class Grouping(Orderable):
+
+    name = models.CharField(max_length=100, unique=True)
+    teams = models.ManyToManyField(Team, through='TeamGrouping')
+
+    def __unicode__(self):
+        return self.name
+
+
+class TeamGrouping(Orderable):
+
+    team = models.ForeignKey(Team)
+    grouping = models.ForeignKey(Grouping)
+
+    def __unicode__(self):
+        return '{0} in {1}'.format(self.team, self.grouping)
 
 
 class Member(models.Model):
