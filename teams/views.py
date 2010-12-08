@@ -9,13 +9,14 @@ from django.template.context import RequestContext
 from django.contrib.auth.decorators import login_required
 
 
-from teams.models import Member, Team
+from teams.models import Grouping, Member, Team
 
 
 @login_required
 def index(request):
     template_name = 'teams/index.html'
     template_context = {
+        'groupings': Grouping.objects.all(),
         'public_teams': Team.objects.filter(is_private=False),
         'private_teams': Team.objects.filter(is_private=True),
     }
