@@ -16,6 +16,9 @@ class Grouping(models.Model):
     teams = models.ManyToManyField('Team', through='GroupingTeam')
     tags = TaggableManager()
 
+    class Meta:
+        ordering = ['name']
+
     def __unicode__(self):
         return self.name
 
