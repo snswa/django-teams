@@ -106,8 +106,8 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.admin',
-    'inline_ordering',
     'south',
+    'taggit',
     'teams',
 )
 

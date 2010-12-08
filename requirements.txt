@@ -1,4 +1,4 @@
 Django==1.2.3
 South==0.7.2
 -e git+http://github.com/snswa/django-groups.git@master#egg=django-groups
--e git+http://github.com/snswa/django-inline-ordering.git@master#egg=django-inline-ordering
+-e git+http://github.com/snswa/django-taggit.git@master#egg=django-taggit
