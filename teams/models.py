@@ -49,6 +49,7 @@ class Team(GroupBase):
     name = models.CharField(max_length=100, unique=True)
     is_private = models.BooleanField(default=False)
     auto_join = models.BooleanField(default=False)
+    tags = TaggableManager()
     members = models.ManyToManyField(User, through='Member')
 
     class Meta:
