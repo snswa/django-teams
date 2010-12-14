@@ -50,7 +50,7 @@ class Team(GroupBase):
     is_private = models.BooleanField(default=False)
     auto_join = models.BooleanField(default=False)
     tags = TaggableManager()
-    parent = models.ForeignKey('Team', null=True, db_index=True)
+    parent = models.ForeignKey('Team', null=True, db_index=True, blank=True)
     members = models.ManyToManyField(User, through='Member')
 
     class Meta:
