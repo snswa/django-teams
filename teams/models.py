@@ -50,6 +50,7 @@ class Team(GroupBase):
     is_private = models.BooleanField(default=False)
     auto_join = models.BooleanField(default=False)
     tags = TaggableManager()
+    parent = models.ForeignKey('Team', null=True, db_index=True)
     members = models.ManyToManyField(User, through='Member')
 
     class Meta:
@@ -57,6 +58,22 @@ class Team(GroupBase):
 
     def __unicode__(self):
         return self.name
+
+    def children(self):
+        """All direct descendants of this team."""
+        return Team.objects.filter(parent=self)
+
+    def parents(self):
+        """All parents starting at top-level."""
+        team = self
+        parents = []
+        parent = team.parent
+        while parent:
+            parents.append(parent)
+            team = parent
+            parent = team.parent
+        parents.reverse()
+        return parents
 
     def get_absolute_url(self):
         return reverse('teams_team', kwargs={'slug': self.slug})

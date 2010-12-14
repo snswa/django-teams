@@ -12,11 +12,26 @@ from django.contrib.auth.decorators import login_required
 from teams.models import Grouping, Member, Team
 
 
+def team_tree(L, parent=None):
+    teams = Team.objects.filter(parent=parent)
+    if teams:
+        L.append('ul')
+        for team in teams:
+            L.append('li')
+            L.append(team)
+            team_tree(L, team)
+            L.append('/li')
+        L.append('/ul')
+    return L
+
+
 @login_required
 def index(request):
     template_name = 'teams/index.html'
+    L = []
     template_context = {
         'groupings': Grouping.objects.all(),
+        'team_tree': team_tree(L),
         'public_teams': Team.objects.filter(is_private=False),
         'private_teams': Team.objects.filter(is_private=True),
     }
