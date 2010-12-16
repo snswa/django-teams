@@ -46,7 +46,7 @@ class Team(GroupBase):
     """A team, either public or private, that has members."""
 
     slug = models.CharField(max_length=64, unique=True)
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
     is_private = models.BooleanField(default=False)
     auto_join = models.BooleanField(default=False)
     tags = TaggableManager()
