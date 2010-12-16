@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from teams.models import Grouping, GroupingTeam, Member, Team
+from teams.models import Member, Team
 
 
 # -- inlines --
@@ -12,20 +12,7 @@ class MemberInline(admin.TabularInline):
     extra = 1
 
 
-class GroupingTeamInline(admin.TabularInline):
-
-    model = GroupingTeam
-    extra = 1
-
-
 # -- admins --
-
-
-class GroupingAdmin(admin.ModelAdmin):
-
-    inlines = [
-        GroupingTeamInline,
-    ]
 
 
 class TeamAdmin(admin.ModelAdmin):
@@ -41,5 +28,4 @@ class TeamAdmin(admin.ModelAdmin):
 # -- registration --
 
 
-admin.site.register(Grouping, GroupingAdmin)
 admin.site.register(Team, TeamAdmin)

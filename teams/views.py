@@ -8,8 +8,7 @@ from django.template.context import RequestContext
 
 from django.contrib.auth.decorators import login_required
 
-
-from teams.models import Grouping, Member, Team
+from teams.models import Member, Team
 
 
 def team_tree(L, parent=None):
@@ -30,7 +29,6 @@ def index(request):
     template_name = 'teams/index.html'
     L = []
     template_context = {
-        'groupings': Grouping.objects.all(),
         'team_tree': team_tree(L),
         'public_teams': Team.objects.filter(is_private=False),
         'private_teams': Team.objects.filter(is_private=True),

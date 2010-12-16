@@ -9,26 +9,6 @@ from taggit.managers import TaggableManager
 from groups.base import GroupBase
 
 
-class Grouping(models.Model):
-    """A conceptual grouping of teams.  E.g. 'Special Interest' or 'NW Region'"""
-
-    name = models.CharField(max_length=100, unique=True)
-    teams = models.ManyToManyField('Team', through='GroupingTeam')
-    tags = TaggableManager()
-
-    class Meta:
-        ordering = ['name']
-
-    def __unicode__(self):
-        return self.name
-
-
-class GroupingTeam(models.Model):
-
-    grouping = models.ForeignKey(Grouping)
-    team = models.ForeignKey('Team')
-
-
 class Member(models.Model):
     """A user's membership in a team."""
 
