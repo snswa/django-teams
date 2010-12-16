@@ -45,8 +45,9 @@ class Member(models.Model):
 class Team(GroupBase):
     """A team, either public or private, that has members."""
 
-    slug = models.CharField(max_length=64, unique=True)
+    slug = models.CharField(max_length=64, unique=True, db_index=True)
     name = models.CharField(max_length=100)
+    sort_order = models.IntegerField(default=0)
     is_private = models.BooleanField(default=False)
     auto_join = models.BooleanField(default=False)
     tags = TaggableManager()
@@ -54,7 +55,7 @@ class Team(GroupBase):
     members = models.ManyToManyField(User, through='Member')
 
     class Meta:
-        ordering = ['name']
+        ordering = ['sort_order', 'name']
 
     def __unicode__(self):
         return self.name
