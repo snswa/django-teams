@@ -30,7 +30,7 @@ class GroupingAdmin(admin.ModelAdmin):
 
 class TeamAdmin(admin.ModelAdmin):
 
-    list_display = ('name', 'is_private', 'auto_join')
+    list_display = ('name', 'parent', 'is_private', 'auto_join')
     list_filter = ('is_private', 'auto_join')
 
     inlines = [
