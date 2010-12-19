@@ -17,6 +17,9 @@ class Member(models.Model):
     is_coordinator = models.BooleanField(default=False)
     joined = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['team__name', '-is_coordinator', 'user__username']
+
     def __unicode__(self):
         rel = 'coordinator' if self.is_coordinator else 'member'
         return u'{0}, {1} of {2}'.format(self.user, rel, self.team)
@@ -35,7 +38,7 @@ class Team(GroupBase):
     members = models.ManyToManyField(User, through='Member')
 
     class Meta:
-        ordering = ['sort_order', 'name']
+        ordering = ['name']
 
     def __unicode__(self):
         return self.name

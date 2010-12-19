@@ -12,7 +12,7 @@ from teams.models import Member, Team
 
 
 def team_tree(L, parent=None):
-    teams = Team.objects.filter(parent=parent)
+    teams = Team.objects.filter(parent=parent).order_by('sort_order', 'name')
     if teams:
         L.append('ul')
         for team in teams:
