@@ -43,6 +43,9 @@ class Team(GroupBase):
     def __unicode__(self):
         return self.name
 
+    def get_absolute_url(self):
+        return reverse('teams_team', kwargs={'slug': self.slug})
+
     def children(self):
         """All direct descendants of this team."""
         return Team.objects.filter(parent=self)
@@ -58,9 +61,6 @@ class Team(GroupBase):
             parent = team.parent
         parents.reverse()
         return parents
-
-    def get_absolute_url(self):
-        return reverse('teams_team', kwargs={'slug': self.slug})
 
 
 def auto_join_user_with_no_memberships(sender, instance=None, **kwargs):
