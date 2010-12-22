@@ -50,13 +50,35 @@ def team(request, slug):
         template_name, template_context, RequestContext(request))
 
 
+@login_required
+def membership(request):
+    user = request.user
+    if request.method == 'POST':
+        for team in Team.objects.all():
+            team_tag = 'team_{0}'.format(team.id)
+            user_is_member = user in team.members.all()
+            # Add to teams requested but not yet member of, as long as team
+            # is not private.
+            if (not team.is_private
+                and team_tag in request.POST
+                and not user_is_member
+                ):
+                Member(team=team, user=user).save()
+            # Remove from teams not referenced in POST (because they were not checked in the UI).
+            if (team_tag not in request.POST
+                and user_is_member
+                ):
+                Member.objects.get(team=team, user=user).delete()
+    redirect_to = reverse('teams_index')
+    return HttpResponseRedirect(redirect_to)
+
+
 # @@@ needs test
 @login_required
-def membership(request, slug):
+def team_membership(request, slug):
     team = get_object_or_404(Team, slug=slug)
     if request.method == 'POST':
         if request.POST.get('join'):
-            print 'joining'
             if not team.is_private and not request.user in team.members.all():
                 Member(team=team, user=request.user).save()
         elif request.POST.get('leave'):
