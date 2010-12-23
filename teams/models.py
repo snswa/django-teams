@@ -44,7 +44,7 @@ class Team(GroupBase):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('teams_team', kwargs={'slug': self.slug})
+        return reverse('teams_team_index', kwargs={'slug': self.slug})
 
     def children(self):
         """All direct descendants of this team."""
