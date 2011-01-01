@@ -83,5 +83,5 @@ def team_membership(request, slug):
                 Member(team=team, user=request.user).save()
         elif request.POST.get('leave'):
             Member.objects.filter(team=team, user=request.user).delete()
-    redirect_to = reverse('teams_team', kwargs={'slug': slug})
+    redirect_to = reverse('teams_team_index', kwargs={'slug': slug})
     return HttpResponseRedirect(redirect_to)
