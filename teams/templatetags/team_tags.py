@@ -12,7 +12,6 @@ def iscoordinatorofteam(user, team):
 
     Example usage::
 
-        {% load team_tags %}
         {% if user|iscoordinatorofteam:team %}
             You are a coordinator.
         {% else %}
@@ -26,3 +25,16 @@ def iscoordinatorofteam(user, team):
     except Member.DoesNotExist:
         return False
     return member.is_coordinator
+
+
+@register.filter
+def coordinatormembers(team_members):
+    """Queryset filter to extract coordinator users from a team member set.
+
+    Example usage::
+
+        {% for member in team.member_set|coordinatorusers %}
+            {{ member.user.get_profile }} is a coordinator of {{ team }}.
+        {% endfor %}
+    """
+    return team_members.filter(is_coordinator=True)
