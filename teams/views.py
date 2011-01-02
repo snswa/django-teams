@@ -38,20 +38,18 @@ def index(request):
 
 
 @login_required
-def team(request, slug):
-    template_name = 'teams/team.html'
+def team(request, slug, template_name='teams/team.html', **kwargs):
     team = get_object_or_404(Team, slug=slug)
     request.group = team    # So template context processors can access it.
     template_context = {
         'group': team,
-        'is_team_member': team.user_is_member(request.user),
     }
     return render_to_response(
         template_name, template_context, RequestContext(request))
 
 
 @login_required
-def membership(request):
+def change_memberships(request):
     user = request.user
     if request.method == 'POST':
         for team in Team.objects.all():
@@ -73,9 +71,22 @@ def membership(request):
     return HttpResponseRedirect(redirect_to)
 
 
+@login_required
+def team_members(request, slug, template_name='teams/members.html', **kwargs):
+    team = get_object_or_404(Team, slug=slug)
+    request.group = team    # So template context processors can access it.
+    template_context = {
+        'group': team,
+        'coordinator_list': team.member_set.filter(is_coordinator=True),
+        'member_list': team.member_set.all(),
+    }
+    return render_to_response(
+        template_name, template_context, RequestContext(request))
+
+
 # @@@ needs test
 @login_required
-def team_membership(request, slug):
+def team_change_membership(request, slug):
     team = get_object_or_404(Team, slug=slug)
     if request.method == 'POST':
         if request.POST.get('join'):
