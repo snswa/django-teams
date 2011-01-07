@@ -25,31 +25,34 @@ def team_tree(L, parent=None):
 
 
 @login_required
-def index(request):
-    template_name = 'teams/index.html'
+def index(request, template_name='teams/index.html', extra_context=None, *args, **kwargs):
+    extra_context = extra_context or {}
     L = []
     template_context = {
         'team_tree': team_tree(L),
         'public_teams': Team.objects.filter(is_private=False),
         'private_teams': Team.objects.filter(is_private=True),
     }
+    template_context.update(extra_context)
     return render_to_response(
         template_name, template_context, RequestContext(request))
 
 
 @login_required
-def team(request, slug, template_name='teams/team.html', **kwargs):
+def team(request, slug, template_name='teams/team.html', extra_context=None, *args, **kwargs):
+    extra_context = extra_context or {}
     team = get_object_or_404(Team, slug=slug)
     request.group = team    # So template context processors can access it.
     template_context = {
         'group': team,
     }
+    template_context.update(extra_context)
     return render_to_response(
         template_name, template_context, RequestContext(request))
 
 
 @login_required
-def change_memberships(request):
+def change_memberships(request, *args, **kwargs):
     user = request.user
     if request.method == 'POST':
         for team in Team.objects.all():
@@ -72,7 +75,8 @@ def change_memberships(request):
 
 
 @login_required
-def team_members(request, slug, template_name='teams/members.html', **kwargs):
+def team_members(request, slug, template_name='teams/members.html', extra_context=None, *args, **kwargs):
+    extra_context = extra_context or {}
     team = get_object_or_404(Team, slug=slug)
     request.group = team    # So template context processors can access it.
     template_context = {
@@ -80,13 +84,14 @@ def team_members(request, slug, template_name='teams/members.html', **kwargs):
         'coordinator_list': team.member_set.filter(is_coordinator=True),
         'member_list': team.member_set.all(),
     }
+    template_context.update(extra_context)
     return render_to_response(
         template_name, template_context, RequestContext(request))
 
 
 # @@@ needs test
 @login_required
-def team_change_membership(request, slug):
+def team_change_membership(request, slug, *args, **kwargs):
     team = get_object_or_404(Team, slug=slug)
     if request.method == 'POST':
         if request.POST.get('join'):
