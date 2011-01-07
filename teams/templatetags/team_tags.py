@@ -1,6 +1,6 @@
 from django import template
 
-from teams.models import Member
+from teams.models import Member, Team
 
 
 register = template.Library()
@@ -38,3 +38,20 @@ def coordinatormembers(team_members):
         {% endfor %}
     """
     return team_members.filter(is_coordinator=True)
+
+
+@register.filter
+def teamforslug(slug):
+    """Return the team associated with the given slug.
+
+    Example usage::
+
+        {% with request.GET.team as team_slug %}
+            {% if team_slug %}
+                {% with team_slug|teamforslug as team %}
+                    {{ team.name }}
+                {% endwith %}
+            {% endif %}
+        {% endwith %}
+    """
+    return Team.objects.get(slug=slug)
