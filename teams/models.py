@@ -39,6 +39,13 @@ class Team(GroupBase):
 
     class Meta:
         ordering = ['name']
+        # Exposed via teams.backends.TeamMembershipBackend
+        permissions = (
+            ('ismember', 'Is member of a team.'),
+            ('iscoordinator', 'Is coordinator of a team.'),
+            ('join', 'Can join a given team.'),
+            ('view', 'Can view a given team.'),
+        )
 
     def __unicode__(self):
         return self.name

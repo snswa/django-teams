@@ -1,5 +1,6 @@
 from operator import attrgetter
 
+from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.http import HttpResponseRedirect
@@ -42,6 +43,8 @@ def index(request, template_name='teams/index.html', extra_context=None, *args, 
 def team(request, slug, template_name='teams/team.html', extra_context=None, *args, **kwargs):
     extra_context = extra_context or {}
     team = get_object_or_404(Team, slug=slug)
+    if not request.user.has_perm('teams.view', team):
+        raise PermissionDenied()
     request.group = team    # So template context processors can access it.
     template_context = {
         'group': team,
@@ -60,10 +63,7 @@ def change_memberships(request, *args, **kwargs):
             user_is_member = user in team.members.all()
             # Add to teams requested but not yet member of, as long as team
             # is not private.
-            if (not team.is_private
-                and team_tag in request.POST
-                and not user_is_member
-                ):
+            if team_tag in request.POST and not user_is_member and user.has_perm('teams.join', team):
                 Member(team=team, user=user).save()
             # Remove from teams not referenced in POST (because they were not checked in the UI).
             if (team_tag not in request.POST
@@ -78,6 +78,8 @@ def change_memberships(request, *args, **kwargs):
 def team_members(request, slug, template_name='teams/members.html', extra_context=None, *args, **kwargs):
     extra_context = extra_context or {}
     team = get_object_or_404(Team, slug=slug)
+    if not request.user.has_perm('teams.view', team):
+        raise PermissionDenied()
     request.group = team    # So template context processors can access it.
     template_context = {
         'group': team,
@@ -93,10 +95,10 @@ def team_members(request, slug, template_name='teams/members.html', extra_contex
 @login_required
 def team_change_membership(request, slug, *args, **kwargs):
     team = get_object_or_404(Team, slug=slug)
+    user = request.user
     if request.method == 'POST':
-        if request.POST.get('join'):
-            if not team.is_private and not request.user in team.members.all():
-                Member(team=team, user=request.user).save()
+        if request.POST.get('join') and user.has_perm('teams.join', team):
+            Member(team=team, user=request.user).save()
         elif request.POST.get('leave'):
             Member.objects.filter(team=team, user=request.user).delete()
     redirect_to = reverse('teams_team_index', kwargs={'slug': slug})
