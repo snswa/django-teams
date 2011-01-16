@@ -18,13 +18,7 @@ def iscoordinatorofteam(user, team):
             You are not a coordinator.
         {% endif %}
     """
-    if team is None:
-        return False
-    try:
-        member = Member.objects.get(team=team, user=user)
-    except Member.DoesNotExist:
-        return False
-    return member.is_coordinator
+    return Member.objects.filter(team=team, user=user, is_coordinator=True).exists()
 
 
 @register.filter
